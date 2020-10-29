@@ -49,7 +49,7 @@ class GraphsTabWidget(QtWidgets.QWidget):
 
         self.tabWidget.resize(800, 600)
         self.tabWidget.addTab(self.solutionsPageWidget, "Solution graphs")
-        self.tabWidget.addTab(self.gtePageWidget, "GTE")
+        self.tabWidget.addTab(self.gtePageWidget, "Local errors")
         self.tabWidget.addTab(self.gteMaxPageWidget, "Max GTE graphs")
 
 
@@ -83,7 +83,7 @@ class ParametersValuesWidget(QtWidgets.QWidget):
         self.valueY0 = QtWidgets.QLineEdit('0')
         self.valueN = QtWidgets.QLineEdit('70')
         self.valueN0 = QtWidgets.QLineEdit('10')
-        self.valueNMax = QtWidgets.QLineEdit('140')
+        self.valueNMax = QtWidgets.QLineEdit('100')
 
         self.valueX0.setValidator(QtGui.QIntValidator())
         self.valueX.setValidator(QtGui.QIntValidator())
