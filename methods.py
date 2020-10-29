@@ -2,64 +2,58 @@ import numpy as np
 
 
 class SolutionMethod:
-    def __init__(self, diffEquation, N, x0, y0, X):
+    def __init__(self, diffEquation):
         self.diffEquation = diffEquation
-        self.N = N
+        self.h = 0
+        self.xPoints = np.array([])
+        self.yExactValues = np.array([])
+        self.yApproxValues = np.array([])
+        self.gte = np.array([])
+
+    def setXPoints(self, x0, X, N):
+        self.xPoints = np.array([x0])
+
         self.h = (X - x0) / N
-        self.x0 = x0
-        self.y0 = y0
-        self.X = X
-        self.xPoints = self.setXPoints()
+        for i in range(1, N):
+            self.xPoints = np.append(self.xPoints, x0 + self.h * i)
 
+    def calculateYExactValues(self, x0, y0, N):
         self.yExactValues = np.array([y0])
-        self.calculateYExactValues()
 
-        self.yApproxValues = np.array([y0])
+        C = np.exp(-y0 / x0) - x0
 
-    def setXPoints(self):
-        xPoints = np.array([self.x0])
-
-        for i in range(1, self.N):
-            xPoints = np.append(xPoints, self.x0 + self.h * i)
-
-        return xPoints
-
-    def calculateYExactValues(self):
-        C = np.exp(-self.y0 / self.x0) - self.x0
-
-        for i in range(1, self.N):
+        for i in range(1, N):
             self.yExactValues = np.append(self.yExactValues, self.diffEquation.exactSolution(self.xPoints[i], C))
 
-    def calculateGTE(self):
-        gte = np.array([0])
+    def calculateGTE(self, N):
+        self.gte = np.array([0])
 
-        for i in range(1, self.N):
-            gte = np.append(gte, np.abs(self.yExactValues[i] - self.yApproxValues[i]))
-
-        return gte
+        for i in range(1, N):
+            self.gte = np.append(self.gte, np.abs(self.yExactValues[i] - self.yApproxValues[i]))
 
 
 class EulerMethod(SolutionMethod):
-    def __init__(self, diffEquation, N, x0, y0, X):
-        SolutionMethod.__init__(self, diffEquation, N, x0, y0, X)
+    def __init__(self, diffEquation):
+        SolutionMethod.__init__(self, diffEquation)
 
-        self.calculateYApproxValues()
+    def solve(self, x0, y0, X, N):
+        self.h = (X - x0) / N
+        self.setXPoints(x0, X, N)
+        self.calculateYExactValues(x0, y0, N)
+        self.calculateYApproxValues(y0, N, self.h)
+        self.calculateGTE(N)
 
-        self.gte = self.calculateGTE()
+    def calculateYApproxValues(self, y0, N, h):
+        self.yApproxValues = np.array([y0])
 
-    def calculateYApproxValues(self):
-        for i in range(1, self.N):
+        for i in range(1, N):
             self.yApproxValues = np.append(self.yApproxValues, self.yApproxValues[i - 1] +
-                                           self.h * self.diffEquation.f(self.xPoints[i - 1], self.yApproxValues[i - 1]))
+                                           h * self.diffEquation.f(self.xPoints[i - 1], self.yApproxValues[i - 1]))
 
 
 class ImprovedEulerMethod(SolutionMethod):
-    def __init__(self, diffEquation, N, x0, y0, X):
-        SolutionMethod.__init__(self, diffEquation, N, x0, y0, X)
-
-        self.calculateYApproxValues()
-
-        self.gte = self.calculateGTE()
+    def __init__(self, diffEquation):
+        SolutionMethod.__init__(self, diffEquation)
 
     def k1(self, i):
         return self.diffEquation.f(self.xPoints[i], self.yApproxValues[i])
@@ -67,19 +61,24 @@ class ImprovedEulerMethod(SolutionMethod):
     def k2(self, i):
         return self.diffEquation.f(self.xPoints[i] + self.h, self.yApproxValues[i] + self.h * self.k1(i))
 
-    def calculateYApproxValues(self):
-        for i in range(self.N - 1):
+    def solve(self, x0, y0, X, N):
+        self.h = (X - x0) / N
+        self.setXPoints(x0, X, N)
+        self.calculateYExactValues(x0, y0, N)
+        self.calculateYApproxValues(y0, N, self.h)
+        self.calculateGTE(N)
+
+    def calculateYApproxValues(self, y0, N, h):
+        self.yApproxValues = np.array([y0])
+
+        for i in range(N - 1):
             self.yApproxValues = np.append(self.yApproxValues,
-                                           self.yApproxValues[i] + self.h / 2 * (self.k1(i) + self.k2(i)))
+                                           self.yApproxValues[i] + h / 2 * (self.k1(i) + self.k2(i)))
 
 
 class RungeKuttaMethod(SolutionMethod):
-    def __init__(self, diffEquation, N, x0, y0, X):
-        SolutionMethod.__init__(self, diffEquation, N, x0, y0, X)
-
-        self.calculateYApproxValues()
-
-        self.gte = self.calculateGTE()
+    def __init__(self, diffEquation):
+        SolutionMethod.__init__(self, diffEquation)
 
     def k1(self, i):
         return self.diffEquation.f(self.xPoints[i], self.yApproxValues[i])
@@ -93,7 +92,16 @@ class RungeKuttaMethod(SolutionMethod):
     def k4(self, i):
         return self.diffEquation.f(self.xPoints[i] + self.h, self.yApproxValues[i] + self.h * self.k3(i))
 
-    def calculateYApproxValues(self):
-        for i in range(self.N - 1):
-            self.yApproxValues = np.append(self.yApproxValues, self.yApproxValues[i] + self.h / 6 * (self.k1(i) +
-                                                                2 * self.k2(i) + 2 * self.k3(i) + self.k4(i)))
+    def solve(self, x0, y0, X, N):
+        self.h = (X - x0) / N
+        self.setXPoints(x0, X, N)
+        self.calculateYExactValues(x0, y0, N)
+        self.calculateYApproxValues(y0, N, self.h)
+        self.calculateGTE(N)
+
+    def calculateYApproxValues(self, y0, N, h):
+        self.yApproxValues = np.array([y0])
+
+        for i in range(N - 1):
+            self.yApproxValues = np.append(self.yApproxValues, self.yApproxValues[i] + h / 6 * (self.k1(i) +
+                                                                    2 * self.k2(i) + 2 * self.k3(i) + self.k4(i)))
