@@ -49,7 +49,7 @@ class GraphsTabWidget(QtWidgets.QWidget):
 
         self.tabWidget.resize(800, 600)
         self.tabWidget.addTab(self.solutionsPageWidget, "Solution graphs")
-        self.tabWidget.addTab(self.gtePageWidget, "LTE")
+        self.tabWidget.addTab(self.gtePageWidget, "Local errors")
         self.tabWidget.addTab(self.gteMaxPageWidget, "Max GTE graphs")
 
 
