@@ -30,16 +30,22 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         self.plotGraphs()
 
-    def updateSolutions(self):
+    def getParameters(self):
         N = int(self.optionsWidget.parametersWidget.parametersValuesWidget.valueN.text())
         x0 = int(self.optionsWidget.parametersWidget.parametersValuesWidget.valueX0.text())
         y0 = int(self.optionsWidget.parametersWidget.parametersValuesWidget.valueY0.text())
         X = int(self.optionsWidget.parametersWidget.parametersValuesWidget.valueX.text())
-        diffEquation = self.euler.diffEquation
+        n0 = int(self.optionsWidget.parametersWidget.parametersValuesWidget.valueN0.text())
+        nMax = int(self.optionsWidget.parametersWidget.parametersValuesWidget.valueNMax.text())
 
-        self.euler = EulerMethod(diffEquation, N, x0, y0, X)
-        self.improvedEuler = ImprovedEulerMethod(diffEquation, N, x0, y0, X)
-        self.rungeKutta = RungeKuttaMethod(diffEquation, N, x0, y0, X)
+        return {
+            'N': N, 'x0': x0, 'y0': y0, 'X': X, 'n0': n0, 'nMax': nMax
+        }
+
+    def updateSolutions(self, x0, y0, X, N):
+        self.euler.solve(x0, y0, X, N)
+        self.improvedEuler.solve(x0, y0, X, N)
+        self.rungeKutta.solve(x0, y0, X, N)
 
     def setGraph(self, axes, xPoints, yValues, gte, gteMax, nPoints, color, name):
         axes['solutions'].plot(xPoints, yValues, color, label=name)
@@ -62,15 +68,18 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.graphsTabWidget.gteGraphs.clear()
         self.graphsTabWidget.gteMaxGraphs.clear()
 
-        self.updateSolutions()
-
         axes = {
             'solutions': self.graphsTabWidget.solutionsGraphs.add_subplot(111),
             'gte': self.graphsTabWidget.gteGraphs.add_subplot(111),
             'gteMax': self.graphsTabWidget.gteMaxGraphs.add_subplot(111)
         }
 
-        gteMaxEuler, gteMaxImprovedEuler, gteMaxRungeKutta, nPoints = self.calculateGteMax()
+        params = self.getParameters()
+
+        self.updateSolutions(params['x0'], params['y0'], params['X'], params['N'])
+        gteMaxEuler, gteMaxImprovedEuler, gteMaxRungeKutta, nPoints = self.calculateGteMax(params['x0'], params['y0'],
+                                                                                           params['X'], params['n0'],
+                                                                                           params['nMax'])
 
         xPoints = self.euler.xPoints
         if self.optionsWidget.methodsCheckboxesWidget.checkboxExact.isChecked():
@@ -93,20 +102,20 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.graphsTabWidget.gteCanvas.draw()
         self.graphsTabWidget.gteMaxCanvas.draw()
 
-    def calculateGteMax(self):
-        diffEquation = self.euler.diffEquation
-        n0 = int(self.optionsWidget.parametersWidget.parametersValuesWidget.valueN0.text())
-        nMax = int(self.optionsWidget.parametersWidget.parametersValuesWidget.valueNMax.text())
-
+    def calculateGteMax(self, x0, y0, X, n0, nMax):
         gteMaxEuler = np.array([])
         gteMaxImprovedEuler = np.array([])
         gteMaxRungeKutta = np.array([])
         nPoints = range(n0, nMax + 1)
 
         for N in nPoints:
-            euler = EulerMethod(diffEquation, N, self.euler.x0, self.euler.y0, self.euler.X)
-            improvedEuler = ImprovedEulerMethod(diffEquation, N, self.euler.x0, self.euler.y0, self.euler.X)
-            rungeKutta = RungeKuttaMethod(diffEquation, N, self.euler.x0, self.euler.y0, self.euler.X)
+            euler = EulerMethod(self.euler.diffEquation)
+            improvedEuler = ImprovedEulerMethod(self.euler.diffEquation)
+            rungeKutta = RungeKuttaMethod(self.euler.diffEquation)
+
+            euler.solve(x0, y0, X, N)
+            improvedEuler.solve(x0, y0, X, N)
+            rungeKutta.solve(x0, y0, X, N)
 
             gteMaxEuler = np.append(gteMaxEuler, np.max(euler.gte))
             gteMaxImprovedEuler = np.append(gteMaxImprovedEuler, np.max(improvedEuler.gte))

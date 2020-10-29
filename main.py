@@ -16,9 +16,9 @@ def exactSolution(x, C):
 
 if __name__ == "__main__":
     diffEq = DifferentialEquation(f=f, exactSolution=exactSolution)
-    euler = EulerMethod(diffEquation=diffEq, N=40, x0=1, y0=0, X=8)
-    improvedEuler = ImprovedEulerMethod(diffEquation=diffEq, N=40, x0=1, y0=0, X=8)
-    rungeKutta = RungeKuttaMethod(diffEquation=diffEq, N=40, x0=1, y0=0, X=8)
+    euler = EulerMethod(diffEquation=diffEq)
+    improvedEuler = ImprovedEulerMethod(diffEquation=diffEq)
+    rungeKutta = RungeKuttaMethod(diffEquation=diffEq)
 
     app = QtWidgets.QApplication(sys.argv)
     solverWindow = ApplicationWindow(euler, improvedEuler, rungeKutta)
