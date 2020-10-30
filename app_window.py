@@ -47,7 +47,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         if not (x0 < 0 and 0 > X > x0 or x0 > 0 and X > x0 > 0):
             inputIsCorrect = False
             msgBox.setText('Invalid interval for x!')
-            msgBox.setInformativeText('Constraints for x:\n x > 0 or x < 0')
+            msgBox.setInformativeText('Constraints for x:\n x > 0 or x < 0 and x0 < X')
             msgBox.exec()
 
         if n0 >= nMax:
@@ -55,9 +55,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             msgBox.setText('N0 should be less than N Max!')
             msgBox.exec()
 
-        if n0 <= 0:
+        if n0 <= 1:
             inputIsCorrect = False
-            msgBox.setText('N0 should be greater than zero!')
+            msgBox.setText('N0 should be greater than 1!')
             msgBox.exec()
 
         return inputIsCorrect
