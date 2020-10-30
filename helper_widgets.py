@@ -81,7 +81,7 @@ class ParametersValuesWidget(QtWidgets.QWidget):
         self.valueX0 = QtWidgets.QLineEdit('1')
         self.valueX = QtWidgets.QLineEdit('8')
         self.valueY0 = QtWidgets.QLineEdit('0')
-        self.valueN = QtWidgets.QLineEdit('70')
+        self.valueN = QtWidgets.QLineEdit('30')
         self.valueN0 = QtWidgets.QLineEdit('10')
         self.valueNMax = QtWidgets.QLineEdit('100')
 
