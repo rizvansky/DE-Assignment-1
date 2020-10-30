@@ -115,7 +115,14 @@
     \subsection{GUI implementation}
     My program work as follows: \\ When pressing \textbf{Plot solutions} button, the method to plot graphs is called. If input values are valid, graphs of solutions, local errors and max GTE with respect to N are plotted on corresponding tabs. Otherwise, the message box(es) will appear with corresponding error text. Also, below the part where user can specify input parameters, an application has checkboxes for showing / hiding metrics of particular solution methods. Each of checkboxes is connected with function that shows / hides plots that user specifies. See an $interesting$ part of a code for GUI implementation below: 
     \\
-    \begin{lstlisting}[language=Python, caption=ApplicationWindow class (Main window of GUI)]
+
+    \begin{lstlisting}[language=Python, caption=\_\_init\_\_ method of ApplicationWindow class (Main window of GUI). GraphsTabWidget and OptionsWidget are composite widgets (also classes) for graphs and options setting correspondingly.]
+from PyQt5 import QtWidgets
+from helper_widgets import GraphsTabWidget, OptionsWidget
+import numpy as np
+from methods import EulerMethod, ImprovedEulerMethod, RungeKuttaMethod
+    
+
 class ApplicationWindow(QtWidgets.QMainWindow):
     def __init__(self, euler, improvedEuler, rungeKutta):
         super(ApplicationWindow, self).__init__()
@@ -146,46 +153,46 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     \end{lstlisting}
     
     \newpage
-    \begin{lstlisting}[language=Python, caption=ApplicationWindow.plotGraphs() method]
-    def plotGraphs(self):
-        params = self.getParameters()
+    \begin{lstlisting}[language=Python, caption=plotGraphs method of ApplicationWindow class]
+def plotGraphs(self):
+    params = self.getParameters()
 
-        if params is not None:
-            self.graphsTabWidget.solutionsGraphs.clear()
-            self.graphsTabWidget.gteGraphs.clear()
-            self.graphsTabWidget.gteMaxGraphs.clear()
+    if params is not None:
+        self.graphsTabWidget.solutionsGraphs.clear()
+        self.graphsTabWidget.gteGraphs.clear()
+        self.graphsTabWidget.gteMaxGraphs.clear()
 
-            axes = {
-                'solutions': self.graphsTabWidget.solutionsGraphs.add_subplot(111),
-                'gte': self.graphsTabWidget.gteGraphs.add_subplot(111),
-                'gteMax': self.graphsTabWidget.gteMaxGraphs.add_subplot(111)
-            }
+        axes = {
+            'solutions': self.graphsTabWidget.solutionsGraphs.add_subplot(111),
+            'gte': self.graphsTabWidget.gteGraphs.add_subplot(111),
+            'gteMax': self.graphsTabWidget.gteMaxGraphs.add_subplot(111)
+        }
 
-            self.updateSolutions(params['x0'], params['y0'], params['X'], params['N'])
-            gteMaxEuler, gteMaxImprovedEuler, gteMaxRungeKutta, nPoints = self.calculateGteMax(params['x0'], params['y0'],
-                                                                                               params['X'], params['n0'],
-                                                                                               params['nMax'])
+        self.updateSolutions(params['x0'], params['y0'], params['X'], params['N'])
+        gteMaxEuler, gteMaxImprovedEuler, gteMaxRungeKutta, nPoints = self.calculateGteMax(params['x0'], params['y0'],
+                                                                                            params['X'], params['n0'],
+                                                                                            params['nMax'])
 
-            xPoints = self.euler.xPoints
-            if self.optionsWidget.methodsCheckboxesWidget.checkboxExact.isChecked():
-                self.setGraph(axes, xPoints, self.euler.yExactValues, np.zeros(shape=[len(self.euler.xPoints)]),
-                              np.zeros(shape=[len(nPoints)]), nPoints, 'c', 'Exact')
+        xPoints = self.euler.xPoints
+        if self.optionsWidget.methodsCheckboxesWidget.checkboxExact.isChecked():
+            self.setGraph(axes, xPoints, self.euler.yExactValues, np.zeros(shape=[len(self.euler.xPoints)]),
+                        np.zeros(shape=[len(nPoints)]), nPoints, 'c', 'Exact')
 
-            if self.optionsWidget.methodsCheckboxesWidget.checkboxEuler.isChecked():
-                self.setGraph(axes, xPoints, self.euler.yApproxValues, self.euler.gte, gteMaxEuler, nPoints, 'b',
-                              'Euler')
+        if self.optionsWidget.methodsCheckboxesWidget.checkboxEuler.isChecked():
+            self.setGraph(axes, xPoints, self.euler.yApproxValues, self.euler.gte, gteMaxEuler, nPoints, 'b',
+                        'Euler')
 
-            if self.optionsWidget.methodsCheckboxesWidget.checkboxImprovedEuler.isChecked():
-                self.setGraph(axes, xPoints, self.improvedEuler.yApproxValues, self.improvedEuler.gte,
+        if self.optionsWidget.methodsCheckboxesWidget.checkboxImprovedEuler.isChecked():
+            self.setGraph(axes, xPoints, self.improvedEuler.yApproxValues, self.improvedEuler.gte,
                               gteMaxImprovedEuler, nPoints, 'r', 'Improved Euler')
 
-            if self.optionsWidget.methodsCheckboxesWidget.checkboxRungeKutta.isChecked():
-                self.setGraph(axes, xPoints, self.rungeKutta.yApproxValues, self.rungeKutta.gte,
+        if self.optionsWidget.methodsCheckboxesWidget.checkboxRungeKutta.isChecked():
+            self.setGraph(axes, xPoints, self.rungeKutta.yApproxValues, self.rungeKutta.gte,
                               gteMaxRungeKutta, nPoints, 'm', 'Runge-Kutta')
 
-            self.graphsTabWidget.solutionsCanvas.draw()
-            self.graphsTabWidget.gteCanvas.draw()
-            self.graphsTabWidget.gteMaxCanvas.draw()
+        self.graphsTabWidget.solutionsCanvas.draw()
+        self.graphsTabWidget.gteCanvas.draw()
+        self.graphsTabWidget.gteMaxCanvas.draw()
     \end{lstlisting}
     
     \subsection{Solution methods implementation}
@@ -200,6 +207,9 @@ class DifferentialEquation:
     \end{lstlisting}
         
         \begin{lstlisting}[language=Python, caption=SolutionMethod class]
+import numpy as np
+
+
 class SolutionMethod:
     def __init__(self, diffEquation):
         self.diffEquation = diffEquation
